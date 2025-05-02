@@ -15,7 +15,7 @@ export const VeteranDetailsPage = () => {
         const fetchVeteran = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`https://localhost:8001/api/veterans/${id}`);
+                const response = await fetch(`/api/veterans/${id}`);
                 if (!response.ok) {
                     throw new Error('Ошибка при загрузке данных ветерана');
                 }
