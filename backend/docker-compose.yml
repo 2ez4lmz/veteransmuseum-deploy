@@ -1,0 +1,45 @@
+services:
+  veteransmuseum.webapi:
+    image: ${DOCKER_REGISTRY-}veteransmuseumwebapi
+    container_name: VeteransMuseum.WebApi
+    build:
+      context: .
+      dockerfile: VeteransMuseum.WebApi/Dockerfile
+    depends_on:
+      - veteransmuseum-db
+
+  veteransmuseum-db:
+    image: postgres:latest
+    container_name: VeteransMuseum.Db
+    environment:
+      - POSTGRES_DB=veteransmuseum
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./.containers/database:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+        
+  veteransmuseum-idp:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: VeteransMuseum.Identity
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    volumes:
+      - ./.containers/identity:/opt/keycloak/data
+      - ./.files/bookify-realm-export.json:/opt/keycloak/data/import/bookify-realm-export.json
+    ports:
+      - 18080:8080
+    command: start-dev --import-realm
+
+  veteransmuseum-seq:
+    image: datalust/seq:latest
+    container_name: VeteransMuseum.Seq
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - 5341:5341
+      - 8081:80
+    
