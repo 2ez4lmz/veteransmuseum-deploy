@@ -1,18 +1,15 @@
-# Используем Node
-FROM node:20-alpine
+FROM node:20-alpine as build
 
-# Рабочая директория
-WORKDIR /app
-
-# Установка зависимостей
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
-
-# Копируем весь проект
 COPY . .
+RUN npm run build
 
-# Открываем порт, который использует Vite
-EXPOSE 5173
+FROM nginx:stable-alpine
 
-# Запуск dev-сервера
-CMD ["npm", "run", "dev", "--", "--host"]
+COPY --from=build /dist /usr/share/nginx/html
+COPY --from=build nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 3000
+
+CMD [ "nginx", "-g", "daemon off;" ]

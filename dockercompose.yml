@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  nginx:
+      image: nginx:stable-alpine
+      ports:
+        - "80:80"
+        - "443:443"
+      volumes:
+        - './nginx.conf:/etc/nginx/nginx.conf'
+        - '/etc/letsencrypt:/etc/letsencrypt'
+      depends_on:
+        - veteransmuseum.webapi
+        - frontend
+      networks:
+        - veteransmuseum-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: veteransmuseum-frontend
+    networks:
+      - veteransmuseum-net
+
+  veteransmuseum.webapi:
+    build:
+      context: ./backend
+      dockerfile: VeteransMuseum.WebApi/Dockerfile
+    container_name: veteransmuseum-webapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=veteransmuseum-db;Port=5432;Database=veteransmuseum;Username=postgres;Password=postgres
+    depends_on:
+      veteransmuseum-db:
+        condition: service_healthy
+    networks:
+      - veteransmuseum-net
+
+  veteransmuseum-db:
+    image: postgres:latest
+    container_name: veteransmuseum-db
+    environment:
+      - POSTGRES_DB=veteransmuseum
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./backend/.containers/database:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - veteransmuseum-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  veteransmuseum-idp:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: veteransmuseum-idp
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    volumes:
+      - ./backend/.containers/identity:/opt/keycloak/data
+      - ./backend/.files/bookify-realm-export.json:/opt/keycloak/data/import/bookify-realm-export.json
+    ports:
+      - "18080:8080"
+    command: start-dev --import-realm
+    networks:
+      - veteransmuseum-net
+
+  veteransmuseum-seq:
+    image: datalust/seq:latest
+    container_name: veteransmuseum-seq
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    networks:
+      - veteransmuseum-net
+
+networks:
+  veteransmuseum-net:
+    driver: bridge
