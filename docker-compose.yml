@@ -29,7 +29,7 @@ services:
       dockerfile: VeteransMuseum.WebApi/Dockerfile
     container_name: veteransmuseum-webapi
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=veteransmuseum-db;Port=5432;Database=veteransmuseum;Username=postgres;Password=postgres
     depends_on:
       veteransmuseum-db:

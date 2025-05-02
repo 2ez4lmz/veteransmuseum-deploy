@@ -1,4 +1,4 @@
-const API_URL = 'https://localhost:8001/api';
+const API_URL = '/api';
 
 import { authUtils } from '../utils/auth';
 
