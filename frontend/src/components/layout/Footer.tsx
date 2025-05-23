@@ -34,7 +34,7 @@ export const Footer = () => {
                     <div>
                         <h4 className="text-lg font-semibold mb-4">Контакты</h4>
                         <ul className="space-y-2 text-gray-400">
-                            <li>+7 (123) 456-78-90</li>
+                            <li>+7 (993) 064-50-08</li>
                             <li>nikitka.sholokhov@bk.ru</li>
                         </ul>
                     </div>
